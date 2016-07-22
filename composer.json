@@ -1,0 +1,22 @@
+{
+    "name": "tetreum/vhostmanager",
+    "type": "library",
+    "description": "Create virtual hosts/vhosts for Nginx/Apache/etc.. via php",
+    "keywords": [
+        "nginx",
+        "virtual host",
+        "vhost",
+        "apache",
+        "config file",
+        "manager",
+        "php"
+    ],
+    "license": "MIT",
+	"require": {
+	    "php": ">=5.5.0",
+	    "romanpitak/nginx-config-processor": "v0.2.1",
+	},
+  "autoload": {
+    "psr-4": {"VHostManager\\": "src"}
+  }
+}
