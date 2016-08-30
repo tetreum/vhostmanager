@@ -4,6 +4,9 @@ namespace VHostManager\Providers;
 
 use VHostManager\System\ProviderBase;
 use VHostManager\System\ProviderInterface;
+use Apache\Config\VirtualHost;
+use Apache\Config\Directive;
+use Apache\Config\Directory;
 
 class Apache extends ProviderBase implements ProviderInterface
 {
@@ -27,18 +30,10 @@ class Apache extends ProviderBase implements ProviderInterface
         "Alias" => "alias",
         "LogLevel" => "loglevel",
     ];
+    private $simpleConversionsReverted = [];
 
-    public function __construct (array $config = [])
-    {
-        $this->sitesEnabledPath = $this->root . "sites-enabled";
-
-        if (isset($config["root"])) {
-            $this->root = $config["root"];
-        }
-
-        if (isset($config["services"])) {
-            $this->services = $config["services"];
-        }
+    public function __construct (array $config = []) {
+        parent::__construct($config);
     }
 
     /**
@@ -64,8 +59,12 @@ class Apache extends ProviderBase implements ProviderInterface
                     break;
                 case "ErrorLog":
                 case "CustomLog":
+                case "TransferLog":
                     if (!isset($host["logs"])) {
                         $host["logs"] = [];
+                    }
+                    if ($directiveName == "TransferLog") {
+                        $directiveName = "access";
                     }
 
                     $host["logs"][strtolower(str_replace("Log", "", $directiveName))] = $directiveValue;
@@ -101,6 +100,49 @@ class Apache extends ProviderBase implements ProviderInterface
         }
     }
 
+    /**
+     * @param VirtualHost|Directory $scope
+     * @param string $key
+     * @param mixed $value
+     */
+    private function applyDirective (&$scope, $key, $value)
+    {
+        if (isset($this->simpleConversionsReverted[$key])) {
+            $scope->addDirective(new Directive($this->simpleConversionsReverted[$key], $value));
+        } else {
+            switch ($key)
+            {
+                case "logs":
+                    foreach ($value as $logName => $path)
+                    {
+                        if ($logName == "access") {
+                            $logName = "transfer";
+                        }
+                        $logName = ucfirst($logName) . "Log";
+
+                        $scope->addDirective(new Directive($logName, $path));
+                    }
+                    break;
+                case "locations":
+                    foreach ($value as $location => $data)
+                    {
+                        $directory = new Directory($location);
+
+                        foreach ($data as $k => $v) {
+                            $this->applyDirective($directory, $k, $v);
+                        }
+                        $scope->addDirectory($directory);
+                    }
+                break;
+            }
+        }
+    }
+
+    /**
+     * @param $domain
+     * @return array
+     * @throws \Exception
+     */
     public function getDomain($domain)
     {
         $file = $this->getDomainPath($domain . ".conf");
@@ -140,13 +182,40 @@ class Apache extends ProviderBase implements ProviderInterface
         return $hosts;
     }
 
-    public function addDomain(array $config)
+    /**
+     * @param array $config
+     * @return VirtualHost
+     */
+    private function processConfig (array $config)
     {
-        // TODO: Implement addDomain() method.
+        $this->validateConfig($config);
+
+        $vhost = new VirtualHost("*", $config["port"]);
+
+        foreach ($config as $k => $v) {
+            $this->applyDirective($vhost, $k, $v);
+        }
+
+        return $vhost;
     }
 
-    public function addLocation($domain, array $config)
+    public function addDomain(array $config)
     {
-        // TODO: Implement addLocation() method.
+        $exists = $this->getDomainPath($config["domain"]);
+
+        if ($exists) {
+            return false;
+        }
+
+        $this->processConfig($config)
+            ->saveToFile($this->decideFileName($config["domain"]));
+
+        $this->restartServices();
+    }
+
+    public function getConversion (array $config)
+    {
+        return $this->processConfig($config)
+            ->toString();
     }
 }

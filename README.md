@@ -2,21 +2,21 @@
 
 Create virtual hosts/vhosts for Nginx/Apache/etc.. via php
 
-# Search for an existing domain
+# Get an existing domain
 ```php
-use VHostManager\Provider\Nginx;
+use VHostManager\VHostManager;
 
-$manager = new Nginx();
-$domain = $manager->findDomain("default");
+$manager = new VHostManager(VHostManager::NGINX);
+$domain = $manager->getDomain("default");
 
 print_r($domain);
 ```
 
-# Add domain
+# Add a domain
 ```php
-use VHostManager\Provider\Nginx;
+use VHostManager\VHostManager;
 
-$manager = new Nginx();
+$manager = new VHostManager(VHostManager::NGINX);
 $manager->addDomain([
 	"domain" => "mongo.dev",
 	"port" => 80,
@@ -27,4 +27,24 @@ $manager->addDomain([
 		]
 	]
 ]);
+```
+
+It will attempt to restart nginx service.
+
+# Universally supported options
+```php
+[
+	"domain" => "mongo.dev",
+	"port" => 80,
+	"root" => "/var/www/mongo",
+	"logs" => [
+	    "error" => "/var/log/mongo/error.log",
+	    "access" => "/var/log/mongo/access.log",
+	],
+	"locations" => [
+		"'^~ /var/'" => [
+			"deny" => "all"
+		]
+	]
+]
 ```

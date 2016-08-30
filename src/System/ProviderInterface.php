@@ -3,8 +3,12 @@
 namespace VHostManager\System;
 
 interface ProviderInterface {
-	public function findDomain ($domain);
+
+    public function __construct (array $config = []);
+
+	public function getDomain ($domain);
 	
 	public function addDomain (array $config);
-	public function addLocation ($domain, array $config);
+
+	public function getConversion (array $config);
 }

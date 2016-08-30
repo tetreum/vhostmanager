@@ -15,7 +15,7 @@ class Nginx extends ProviderBase implements ProviderInterface
 	// services to be restarted
 	private $services = ['nginx'];
 
-    private $simpleConversions = [
+    protected $simpleConversions = [
             "listen" => "port",
             "server_name" => "domain",
             "root" => "root",
@@ -26,20 +26,10 @@ class Nginx extends ProviderBase implements ProviderInterface
             "deny" => "deny",
         ];
     private $simpleConversionsReverted = [];
-	
-	public function __construct (array $config = [])
-	{
-        $this->simpleConversionsReverted = array_flip($this->simpleConversions);
-        $this->sitesEnabledPath = $this->root . "sites-enabled";
 
-		if (isset($config["root"])) {
-			$this->root = $config["root"];
-		}
-		
-		if (isset($config["services"])) {
-			$this->services = $config["services"];
-		}
-	}
+    public function __construct (array $config = []) {
+        parent::__construct($config);
+    }
 
 	public function getDomain ($domain)
     {
@@ -130,6 +120,26 @@ class Nginx extends ProviderBase implements ProviderInterface
             }
         }
     }
+
+    /**
+     * @param array $config
+     * @return Scope
+     */
+    private function processConfig (array $config)
+    {
+        $this->validateConfig($config);
+
+        $serverScope = Scope::create();
+
+        foreach ($config as $k => $v) {
+            $this->applyDirective($serverScope, $k, $v);
+        }
+
+        return Scope::create()
+            ->addDirective(Directive::create('server')
+                ->setChildScope($serverScope)
+            );
+    }
 	
 	public function addDomain (array $config)
 	{
@@ -140,32 +150,18 @@ class Nginx extends ProviderBase implements ProviderInterface
 		if ($exists) {
 			return false;
 		}
-		
-		$serverScope = Scope::create();
 
-        foreach ($config as $k => $v) {
-            $this->applyDirective($serverScope, $k, $v);
-        }
-
-        $fileName = $config["domain"];
-
-        // it may be mongo.dev mongo.lol mongolo.com
-        if (strpos($fileName, " ") !== false) {
-            $fileName = explode(" ", $fileName)[0];
-        }
-		
-		Scope::create()
-			->addDirective(Directive::create('server')
-				->setChildScope($serverScope)
-			)
-			->saveToFile($this->sitesEnabledPath . $fileName);
+        $fileName = $this->decideFileName($config["domain"]);
+		$this->processConfig($config)->saveToFile($this->sitesEnabledPath . $fileName);
 		
 		$this->restartServices();
 
         return true;
 	}
-	
-	public function addLocation ($domain, array $config)
-	{
-	}
+
+    public function getConversion (array $config)
+    {
+        return $this->processConfig($config)
+            ->prettyPrint(3);
+    }
 }

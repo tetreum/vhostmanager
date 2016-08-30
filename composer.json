@@ -15,6 +15,8 @@
 	"require": {
 	    "php": ">=5.5.0",
 	    "romanpitak/nginx-config-processor": "v0.2.1",
+        "tetreum/perfect-print": "dev-master",
+        "tetreum/apache-vhost-processor": "dev-master"
 	},
   "autoload": {
     "psr-4": {"VHostManager\\": "src"}
