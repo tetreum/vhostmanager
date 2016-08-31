@@ -1,0 +1,10 @@
+server {
+    server_name mongo.dev;
+    listen 80;
+    root /var/www/mongo;
+    error_log /var/log/mongo/error.log;
+    access_log /var/log/mongo/access.log;
+    location '^~ /var/' {
+        deny all;
+    }
+}

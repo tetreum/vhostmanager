@@ -4,7 +4,7 @@ namespace VHostManager;
 
 use VHostManager\System\ProviderInterface;
 
-class VHostManager implements ProviderInterface
+class VHostManager
 {
     const APACHE = "Apache";
     const NGINX = "Nginx";
@@ -58,6 +58,14 @@ class VHostManager implements ProviderInterface
     public function getDomain($domain)
     {
         return $this->connector->getDomain($domain);
+    }
+
+    public function getConversion ($config) {
+        return  $this->connector->getConversion($config);
+    }
+
+    public function parseString ($content) {
+        return  $this->connector->parseString($content);
     }
 
     /**

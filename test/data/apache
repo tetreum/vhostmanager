@@ -1,0 +1,11 @@
+<VirtualHost *:80>
+    ServerName mongo.dev
+    DocumentRoot /var/www/mongo
+    ErrorLog /var/log/mongo/error.log
+    TransferLog /var/log/mongo/access.log
+
+    <Directory '^~ /var/'>
+        Deny all
+    </Directory>
+
+</VirtualHost>

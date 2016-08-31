@@ -7,8 +7,10 @@ interface ProviderInterface {
     public function __construct (array $config = []);
 
 	public function getDomain ($domain);
-	
+
 	public function addDomain (array $config);
+
+    public function parseString ($content);
 
 	public function getConversion (array $config);
 }

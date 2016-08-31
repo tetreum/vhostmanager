@@ -10,13 +10,13 @@ use Apache\Config\Directory;
 
 class Apache extends ProviderBase implements ProviderInterface
 {
-    private $root = "/etc/apache2/";
+    protected $root = "/etc/apache2/";
     protected $sitesEnabledPath = null;
 
     // services to be restarted
-    private $services = ['apache2'];
+    protected $services = ['apache2'];
 
-    private $simpleConversions = [
+    protected $simpleConversions = [
         "ServerName" => "domain",
         "DocumentRoot" => "root",
         "DirectoryIndex" => "index",
@@ -30,7 +30,7 @@ class Apache extends ProviderBase implements ProviderInterface
         "Alias" => "alias",
         "LogLevel" => "loglevel",
     ];
-    private $simpleConversionsReverted = [];
+    protected $simpleConversionsReverted = [];
 
     public function __construct (array $config = []) {
         parent::__construct($config);
@@ -151,14 +151,25 @@ class Apache extends ProviderBase implements ProviderInterface
             throw new \Exception("Domain not found");
         }
 
-        $content = fopen($file, 'r');
+        $hosts = $this->parseString(file_get_contents($file));
+
+        if (sizeof($hosts) == 1) {
+            return $hosts[0];
+        }
+
+        return $hosts;
+    }
+
+    public function parseString ($content)
+    {
+        $lines = explode(PHP_EOL, $content);
         $hosts = [];
         $host = [];
         $insideLocation = false;
 
-        while(!feof($content))
+        foreach ($lines as $line)
         {
-            $line = trim(fgets($content));
+            $line = trim($line);
 
             if (empty($line)) {
                 continue;
@@ -174,11 +185,6 @@ class Apache extends ProviderBase implements ProviderInterface
 
             $this->parseDirective($host, $line, $insideLocation);
         }
-
-        if (sizeof($hosts) == 1) {
-            return $hosts[0];
-        }
-
         return $hosts;
     }
 

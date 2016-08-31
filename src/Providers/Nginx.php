@@ -6,14 +6,15 @@ use VHostManager\System\ProviderBase;
 use VHostManager\System\ProviderInterface;
 use RomanPitak\Nginx\Config\Directive;
 use RomanPitak\Nginx\Config\Scope;
+use RomanPitak\Nginx\Config\Text;
 
 class Nginx extends ProviderBase implements ProviderInterface
 {
-	private $root = "/etc/nginx/";
+	protected $root = "/etc/nginx/";
 	protected $sitesEnabledPath = null;
 
 	// services to be restarted
-	private $services = ['nginx'];
+	protected $services = ['nginx'];
 
     protected $simpleConversions = [
             "listen" => "port",
@@ -25,7 +26,7 @@ class Nginx extends ProviderBase implements ProviderInterface
             "expires" => "expires",
             "deny" => "deny",
         ];
-    private $simpleConversionsReverted = [];
+    protected $simpleConversionsReverted = [];
 
     public function __construct (array $config = []) {
         parent::__construct($config);
@@ -39,7 +40,14 @@ class Nginx extends ProviderBase implements ProviderInterface
             throw new \Exception("Domain not found");
         }
 
-        $config = Scope::fromFile($file);
+        $config = file_get_contents($file);
+
+        return $this->parseString($config);
+    }
+
+    public function parseString ($content)
+    {
+        $config = Scope::fromString(new Text($content));
         $host = [];
 
         foreach ($config->getDirectives()[0]->getChildScope()->getDirectives() as $directive) {
@@ -81,8 +89,8 @@ class Nginx extends ProviderBase implements ProviderInterface
                     $host["locations"][$directive->getValue()] = $location;
                     break;
                 default:
-                    p($directive->getName(), $directive->getValue());
-                    throw new \Exception("Directive " . $directive->getName() . " hasnt any conversion set");
+                    //p($directive->getName(), $directive->getValue());
+                    //throw new \Exception("Directive " . $directive->getName() . " hasn't any conversion set");
                     break;
             }
         }
@@ -162,6 +170,6 @@ class Nginx extends ProviderBase implements ProviderInterface
     public function getConversion (array $config)
     {
         return $this->processConfig($config)
-            ->prettyPrint(3);
+            ->prettyPrint(-1);
     }
 }

@@ -18,6 +18,9 @@
         "tetreum/perfect-print": "dev-master",
         "tetreum/apache-vhost-processor": "dev-master"
 	},
+    "require-dev": {
+        "phpunit/phpunit": "4.5.*"
+    },
   "autoload": {
     "psr-4": {"VHostManager\\": "src"}
   }

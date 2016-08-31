@@ -1,4 +1,4 @@
-# WIP
+# WIP [![Build Status](https://travis-ci.org/tetreum/vhostmanager.svg?branch=master)](https://travis-ci.org/tetreum/vhostmanager)
 
 Create virtual hosts/vhosts for Nginx/Apache/etc.. via php
 
@@ -27,6 +27,38 @@ $manager->addDomain([
 		]
 	]
 ]);
+```
+
+# Get conversion
+```php
+use VHostManager\VHostManager;
+
+$manager = new VHostManager(VHostManager::APACHE);
+$manager->getConversion([
+    "domain" => "mongo.dev",
+    "port" => 80,
+    "root" => "/var/www/mongo",
+    "locations" => [
+        "'^~ /var/'" => [
+            "deny" => "all"
+        ]
+    ]
+]);
+```
+
+Result:
+```
+<VirtualHost *:80>
+    ServerName mongo.dev
+    DocumentRoot /var/www/mongo
+    ErrorLog /var/log/mongo/error.log
+    TransferLog /var/log/mongo/access.log
+
+    <Directory '^~ /var/'>
+        Deny all
+    </Directory>
+
+</VirtualHost>
 ```
 
 It will attempt to restart nginx service.
