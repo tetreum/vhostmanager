@@ -1,6 +1,6 @@
 # WIP [![Build Status](https://travis-ci.org/tetreum/vhostmanager.svg?branch=master)](https://travis-ci.org/tetreum/vhostmanager)
 
-Create virtual hosts/vhosts for Nginx/Apache/etc.. via php-
+Create virtual hosts/vhosts for Nginx/Apache/etc.. via php.
 
 # Get an existing domain
 ```php
