@@ -12,12 +12,18 @@
         "php"
     ],
     "license": "MIT",
-	"require": {
-	    "php": ">=5.5.0",
-	    "romanpitak/nginx-config-processor": "v0.2.1",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/tobeorla/Nginx-Config-Processor"
+        }
+    ],
+    "require": {
+	"php": ">=5.5.0",
+	"tobeorla/nginx-config-processor": "dev-patch-1",
         "tetreum/perfect-print": "dev-master",
         "tetreum/apache-vhost-processor": "dev-master"
-	},
+    },
     "require-dev": {
         "phpunit/phpunit": "4.5.*"
     },
